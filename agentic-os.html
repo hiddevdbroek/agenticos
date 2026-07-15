@@ -1,0 +1,1460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic OS</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#05080f; --bg2:#080d18; --bg3:#0c1221;
+  --card:#0a0f1e; --card2:#0e1528;
+  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.11);
+  --text:#e2e8f0; --muted:#4a5568; --muted2:#718096;
+  --accent:#6366f1; --accent2:#8b5cf6; --accent3:#a78bfa;
+  --green:#10b981; --amber:#f59e0b; --red:#ef4444;
+  --blue:#3b82f6; --cyan:#06b6d4; --pink:#ec4899;
+  --glow-accent:rgba(99,102,241,0.35);
+  --glow-green:rgba(16,185,129,0.35);
+  --glow-amber:rgba(245,158,11,0.35);
+}
+body {
+  font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+  background:var(--bg); color:var(--text); display:flex;
+  height:100vh; overflow:hidden; font-size:13px;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(99,102,241,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 110%, rgba(139,92,246,0.06) 0%, transparent 60%);
+}
+::-webkit-scrollbar { width:3px; height:3px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(99,102,241,0.3); border-radius:2px; }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width:220px; flex-shrink:0;
+  background:linear-gradient(180deg,#080d18 0%,#05080f 100%);
+  border-right:1px solid var(--border);
+  display:flex; flex-direction:column; overflow-y:auto; position:relative;
+}
+.sidebar::after {
+  content:''; position:absolute; top:0; right:0; bottom:0; width:1px;
+  background:linear-gradient(180deg,transparent,rgba(99,102,241,0.4),transparent);
+}
+.sidebar-logo {
+  padding:18px 14px 14px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.logo-icon {
+  width:32px; height:32px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border-radius:9px; display:flex; align-items:center;
+  justify-content:center; font-size:15px;
+  box-shadow:0 0 16px var(--glow-accent);
+}
+.logo-text { font-weight:800; font-size:13.5px; letter-spacing:-.01em;
+  background:linear-gradient(135deg,#fff,var(--accent3));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.logo-sub { font-size:10px; color:var(--muted); margin-top:1px; }
+.sidebar-section { padding:14px 8px 4px; }
+.sidebar-section-label {
+  font-size:9.5px; font-weight:700; color:var(--muted);
+  text-transform:uppercase; letter-spacing:.1em; padding:0 8px; margin-bottom:6px;
+}
+.nav-item {
+  display:flex; align-items:center; gap:9px; padding:8px 10px;
+  border-radius:8px; cursor:pointer; color:var(--muted2);
+  transition:all .2s; margin-bottom:2px; font-size:12.5px; font-weight:500;
+}
+.nav-item:hover { background:rgba(99,102,241,0.08); color:var(--text); }
+.nav-item.active {
+  background:linear-gradient(135deg,rgba(99,102,241,0.18),rgba(139,92,246,0.08));
+  color:var(--accent3); border:1px solid rgba(99,102,241,0.2);
+}
+.nav-badge {
+  margin-left:auto;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:white; font-size:10px; font-weight:700;
+  padding:1px 7px; border-radius:10px; box-shadow:0 0 8px var(--glow-accent);
+}
+.nav-dot { margin-left:auto; width:6px; height:6px; border-radius:50%;
+  background:var(--green); box-shadow:0 0 6px var(--glow-green); animation:pulse 2s infinite; }
+.agent-sidebar-item {
+  display:flex; align-items:center; gap:9px; padding:6px 10px;
+  border-radius:8px; cursor:pointer; color:var(--muted2); font-size:12px;
+  margin-bottom:1px; transition:all .2s;
+}
+.agent-sidebar-item:hover { background:rgba(255,255,255,0.03); color:var(--text); }
+.agent-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.sidebar-footer { margin-top:auto; padding:12px 8px; border-top:1px solid var(--border); }
+.user-row { display:flex; align-items:center; gap:9px; padding:8px 10px; border-radius:8px; cursor:pointer; transition:all .2s; }
+.user-row:hover { background:rgba(255,255,255,0.03); }
+.user-avatar {
+  width:30px; height:30px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--pink));
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:800; flex-shrink:0;
+  box-shadow:0 0 12px rgba(236,72,153,0.3);
+}
+.user-name { font-size:12px; font-weight:700; }
+.user-role { font-size:10px; color:var(--muted); }
+
+/* ── MAIN ── */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 22px; border-bottom:1px solid var(--border);
+  background:rgba(8,13,24,0.8); backdrop-filter:blur(12px);
+  flex-shrink:0; position:relative; z-index:10;
+}
+.breadcrumb { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; }
+.breadcrumb span { color:var(--text); font-weight:600; }
+.status-pill {
+  display:flex; align-items:center; gap:6px;
+  background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25);
+  color:var(--green); font-size:11px; font-weight:700;
+  padding:4px 12px; border-radius:20px;
+}
+.pulse { width:6px; height:6px; border-radius:50%; background:var(--green);
+  box-shadow:0 0 6px var(--glow-green); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(0.8)} }
+.topbar-right { display:flex; align-items:center; gap:8px; }
+.topbar-time {
+  font-size:11px; color:var(--muted2); font-weight:600; font-variant-numeric:tabular-nums;
+  background:var(--card); border:1px solid var(--border); padding:5px 12px; border-radius:7px;
+}
+.icon-btn {
+  width:32px; height:32px; border-radius:8px; background:var(--card);
+  border:1px solid var(--border); display:flex; align-items:center;
+  justify-content:center; cursor:pointer; color:var(--muted); font-size:13px; transition:all .2s;
+}
+.icon-btn:hover { border-color:var(--border2); color:var(--text); }
+
+/* ── CONTENT ── */
+.body-layout { flex:1; display:flex; overflow:hidden; }
+.content { flex:1; overflow-y:auto; padding:18px 22px; display:flex; flex-direction:column; gap:16px; }
+.section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.section-title { font-size:13px; font-weight:800; letter-spacing:-.01em; }
+.section-sub { font-size:11px; color:var(--muted); margin-top:1px; }
+.section-action {
+  font-size:11px; color:var(--accent3); cursor:pointer; font-weight:600;
+  padding:4px 10px; border-radius:6px; transition:all .2s;
+  border:1px solid rgba(99,102,241,0.2);
+}
+.section-action:hover { background:rgba(99,102,241,0.1); }
+
+/* ── STATS ── */
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.stat-card {
+  background:linear-gradient(135deg,var(--card) 0%,rgba(10,15,30,0.6) 100%);
+  border:1px solid var(--border); border-radius:12px;
+  padding:14px 16px; display:flex; align-items:center; gap:12px;
+  position:relative; overflow:hidden; transition:all .3s; cursor:pointer;
+}
+.stat-card:hover { border-color:var(--border2); transform:translateY(-2px); }
+.stat-card::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);
+}
+.stat-icon { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+.stat-val { font-size:22px; font-weight:900; letter-spacing:-.04em; line-height:1; }
+.stat-label { font-size:11px; color:var(--muted); margin-top:2px; }
+.stat-trend { margin-left:auto; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px; }
+.trend-up { background:rgba(16,185,129,0.12); color:var(--green); border:1px solid rgba(16,185,129,0.2); }
+.trend-neutral { background:rgba(100,116,139,0.12); color:var(--muted2); border:1px solid rgba(100,116,139,0.15); }
+
+/* ── ACTIVITY BOARD ── */
+.activity-board {
+  background:linear-gradient(135deg,rgba(10,15,30,0.9),rgba(8,12,22,0.9));
+  border:1px solid rgba(99,102,241,0.15); border-radius:12px; overflow:hidden;
+  flex-shrink:0;
+}
+.activity-header {
+  padding:11px 16px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+  background:rgba(99,102,241,0.04);
+}
+.activity-title { font-size:13px; font-weight:800; flex:1; }
+.activity-updated { font-size:10px; color:var(--muted); }
+/* Row layout — much more robust than 4-col grid */
+.activity-row {
+  display:flex; align-items:center; gap:12px;
+  padding:11px 16px; border-bottom:1px solid var(--border);
+  min-height:46px;
+}
+.activity-row:last-of-type { border-bottom:none; }
+.activity-row-icon { font-size:16px; width:22px; text-align:center; flex-shrink:0; }
+.activity-row-name {
+  font-size:12px; font-weight:800; width:88px; flex-shrink:0; color:var(--text);
+}
+.activity-status { font-size:10px; font-weight:700; padding:2px 9px; border-radius:5px; flex-shrink:0; }
+.ast-active  { background:rgba(16,185,129,0.12); color:var(--green); border:1px solid rgba(16,185,129,0.2); }
+.ast-idle    { background:rgba(100,116,139,0.10); color:var(--muted2); border:1px solid rgba(100,116,139,0.15); }
+.ast-running { background:rgba(245,158,11,0.12); color:var(--amber); border:1px solid rgba(245,158,11,0.2);
+  animation:glow-amber .8s infinite alternate; }
+.ast-done    { background:rgba(99,102,241,0.10); color:var(--accent3); border:1px solid rgba(99,102,241,0.2); }
+@keyframes glow-amber { from{box-shadow:none} to{box-shadow:0 0 8px rgba(245,158,11,0.25)} }
+.activity-row-desc { font-size:11.5px; color:var(--muted2); flex:1; line-height:1.4; }
+.activity-row-desc strong { color:var(--text); font-weight:600; }
+.activity-row-result { font-size:10px; color:var(--muted); text-align:right; flex-shrink:0; width:130px; line-height:1.4; }
+.activity-row-result span { color:var(--accent3); font-weight:600; display:block; }
+/* Action needed row */
+.activity-action-needed {
+  padding:10px 16px; border-top:1px solid var(--border);
+  background:rgba(245,158,11,0.03); display:flex; align-items:center; gap:10px;
+}
+.action-label { font-size:10px; font-weight:800; color:var(--amber); text-transform:uppercase;
+  letter-spacing:.06em; white-space:nowrap; flex-shrink:0; }
+.action-items { display:flex; flex-wrap:wrap; gap:6px; flex:1; }
+.action-item {
+  font-size:11px; color:var(--text); padding:4px 12px; border-radius:6px;
+  background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+  cursor:pointer; transition:all .15s;
+}
+.action-item:hover { background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3); color:var(--amber); }
+.no-actions { font-size:11px; color:var(--muted); }
+
+/* ── RESEARCH PANEL ── */
+.research-panel {
+  background:linear-gradient(135deg,rgba(10,15,30,0.9),rgba(8,12,22,0.9));
+  border:1px solid rgba(245,158,11,0.2); border-radius:12px; overflow:hidden;
+}
+.research-panel-header {
+  padding:14px 16px; display:flex; align-items:center; gap:12px;
+  border-bottom:1px solid rgba(245,158,11,0.1); background:rgba(245,158,11,0.03);
+}
+.research-panel-title { font-size:13px; font-weight:700; flex:1; }
+.research-count { font-size:24px; font-weight:900; color:var(--amber);
+  text-shadow:0 0 20px var(--glow-amber); letter-spacing:-.04em; }
+.research-count-label { font-size:10px; color:var(--muted); }
+.research-log {
+  height:175px; overflow-y:auto; padding:10px 16px;
+  display:flex; flex-direction:column; gap:1px;
+  font-family:'JetBrains Mono','Consolas','Courier New',monospace;
+  background:rgba(0,0,0,0.3);
+}
+.log-line { font-size:11px; line-height:1.6; white-space:pre-wrap; }
+.log-time { color:#334155; margin-right:8px; }
+.log-info    { color:#64748b; }
+.log-success { color:var(--green); text-shadow:0 0 8px rgba(16,185,129,0.4); }
+.log-warning { color:var(--amber); }
+.log-error   { color:var(--red); }
+.research-btn {
+  padding:7px 16px; border-radius:8px; border:none; cursor:pointer;
+  font-size:12px; font-weight:700; transition:all .2s; white-space:nowrap;
+}
+.research-btn-start {
+  background:linear-gradient(135deg,rgba(245,158,11,0.2),rgba(245,158,11,0.1));
+  border:1px solid rgba(245,158,11,0.4); color:var(--amber);
+  box-shadow:0 0 16px rgba(245,158,11,0.1);
+}
+.research-btn-start:hover {
+  background:linear-gradient(135deg,rgba(245,158,11,0.35),rgba(245,158,11,0.2));
+  box-shadow:0 0 24px rgba(245,158,11,0.2);
+}
+.research-btn-stop {
+  background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); color:var(--red);
+}
+.research-btn-stop:hover { background:rgba(239,68,68,0.2); }
+.research-channels-grid {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:8px; padding:12px 16px; border-top:1px solid rgba(245,158,11,0.08);
+  height:160px; overflow-y:auto;
+}
+.channel-card {
+  background:rgba(255,255,255,0.02); border:1px solid var(--border);
+  border-radius:8px; padding:10px; transition:all .2s;
+}
+.channel-card:hover { border-color:var(--border2); background:rgba(255,255,255,0.04); }
+.channel-score { font-size:17px; font-weight:900; letter-spacing:-.04em; }
+.channel-name-text { font-size:11px; font-weight:600; margin-top:2px; }
+.channel-niche-text { font-size:10px; color:var(--muted); margin-top:1px; }
+.channel-subs { font-size:10px; color:var(--muted2); margin-top:4px; }
+.score-high { color:var(--green); text-shadow:0 0 10px rgba(16,185,129,0.5); }
+.score-mid  { color:var(--amber); }
+.score-low  { color:var(--muted2); }
+
+/* ── NICHE OPTIONS ── */
+.options-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.option-card {
+  background:linear-gradient(135deg,var(--card) 0%,rgba(10,15,30,0.8) 100%);
+  border:1px solid var(--border); border-radius:12px; padding:16px;
+  cursor:pointer; transition:all .25s; position:relative; overflow:hidden;
+}
+.option-card:hover { border-color:rgba(99,102,241,0.4); transform:translateY(-2px); }
+.option-card.selected {
+  border-color:var(--accent);
+  background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(139,92,246,0.05));
+  box-shadow:0 0 30px rgba(99,102,241,0.15);
+}
+.option-num { font-size:10px; font-weight:800; color:var(--accent); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
+.option-name { font-size:13px; font-weight:800; margin-bottom:5px; letter-spacing:-.01em; }
+.option-formula { font-size:11px; color:var(--muted2); line-height:1.55; margin-bottom:10px; }
+.option-tags { display:flex; gap:5px; flex-wrap:wrap; }
+.option-tag { font-size:10px; padding:2px 8px; border-radius:5px; font-weight:700; }
+.tag-low    { background:rgba(16,185,129,0.12); color:var(--green); border:1px solid rgba(16,185,129,0.2); }
+.tag-medium { background:rgba(245,158,11,0.12); color:var(--amber); border:1px solid rgba(245,158,11,0.2); }
+.tag-high   { background:rgba(239,68,68,0.10); color:var(--red); border:1px solid rgba(239,68,68,0.15); }
+
+/* ── AGENTS GRID ── */
+.agents-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.agent-card {
+  background:linear-gradient(135deg,var(--card) 0%,rgba(8,12,22,0.9) 100%);
+  border:1px solid var(--border); border-radius:12px; padding:16px;
+  transition:all .25s; position:relative; overflow:hidden;
+}
+.agent-card::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.07),transparent);
+}
+.agent-card:hover { border-color:var(--border2); transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,0.3); }
+.agent-card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+.agent-avatar { width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+.status-badge { font-size:10px; font-weight:700; padding:3px 9px; border-radius:6px; }
+.status-active  { background:rgba(16,185,129,0.12); color:var(--green); border:1px solid rgba(16,185,129,0.25); }
+.status-idle    { background:rgba(100,116,139,0.12); color:var(--muted2); border:1px solid rgba(100,116,139,0.15); }
+.status-working { background:rgba(245,158,11,0.12); color:var(--amber); border:1px solid rgba(245,158,11,0.25); animation:glow-amber .8s infinite alternate; }
+.agent-name { font-size:13px; font-weight:800; margin-bottom:3px; letter-spacing:-.01em; }
+.agent-role { font-size:11px; color:var(--muted); margin-bottom:12px; }
+.agent-metrics {
+  display:flex; background:rgba(0,0,0,0.3);
+  border:1px solid var(--border); border-radius:8px; overflow:hidden;
+}
+.agent-metric { flex:1; text-align:center; padding:7px 4px; border-right:1px solid var(--border); }
+.agent-metric:last-child { border-right:none; }
+.agent-metric-val { font-size:14px; font-weight:900; letter-spacing:-.03em; }
+.agent-metric-label { font-size:9px; color:var(--muted); margin-top:1px; text-transform:uppercase; letter-spacing:.04em; }
+.run-btn {
+  margin-top:10px; width:100%; padding:7px; font-size:11px; font-weight:700;
+  cursor:pointer; transition:all .2s; border-radius:7px;
+  background:rgba(255,255,255,0.03); border:1px solid var(--border); color:var(--muted2);
+  display:flex; align-items:center; justify-content:center; gap:5px;
+}
+.run-btn:hover { border-color:var(--accent); color:var(--accent3); background:rgba(99,102,241,0.08); box-shadow:0 0 16px rgba(99,102,241,0.1); }
+.run-btn:active { transform:scale(0.98); }
+
+/* ── BOTTOM ROW ── */
+.bottom-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.panel {
+  background:linear-gradient(135deg,var(--card),rgba(8,12,22,0.8));
+  border:1px solid var(--border); border-radius:12px; padding:16px;
+  position:relative; overflow:hidden;
+}
+.panel::after {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.06),transparent);
+}
+.task-item {
+  display:flex; align-items:flex-start; gap:10px; padding:9px 0;
+  border-bottom:1px solid var(--border);
+}
+.task-item:last-child { border-bottom:none; padding-bottom:0; }
+.task-item:first-child { padding-top:0; }
+.task-check {
+  width:16px; height:16px; border-radius:5px; flex-shrink:0; margin-top:1px;
+  border:1.5px solid rgba(99,102,241,0.3); display:flex; align-items:center;
+  justify-content:center; font-size:9px; cursor:pointer; transition:all .2s;
+}
+.task-check:hover { border-color:var(--accent); background:rgba(99,102,241,0.1); }
+.task-check.done { background:var(--green); border-color:var(--green); color:white; }
+.task-title { font-size:12px; font-weight:500; flex:1; line-height:1.4; }
+.task-title.done { color:var(--muted); text-decoration:line-through; }
+.task-meta { font-size:10px; color:var(--muted); margin-top:2px; display:flex; gap:6px; }
+.task-tag { font-size:10px; font-weight:700; padding:1px 6px; border-radius:4px; }
+.tag-researcher { background:rgba(245,158,11,0.1); color:var(--amber); }
+.tag-cmo   { background:rgba(236,72,153,0.1); color:var(--pink); }
+.tag-sales { background:rgba(16,185,129,0.1); color:var(--green); }
+.tag-owner { background:rgba(99,102,241,0.1); color:var(--accent); }
+.tag-analyst { background:rgba(59,130,246,0.1); color:var(--blue); }
+.memory-item { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+.memory-item:last-child { border-bottom:none; padding-bottom:0; }
+.memory-item:first-child { padding-top:0; }
+.memory-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+.memory-text { font-size:11.5px; color:var(--muted2); line-height:1.5; flex:1; }
+.memory-time { font-size:10px; color:var(--muted); flex-shrink:0; margin-top:2px; }
+.memory-agent { font-weight:700; font-size:10px; }
+.empty-state { color:var(--muted); font-size:12px; text-align:center; padding:20px 0; display:flex; flex-direction:column; align-items:center; gap:6px; }
+.empty-state-icon { font-size:24px; opacity:.4; }
+
+/* ── CHAT PANEL ── */
+.chat-panel {
+  width:390px; flex-shrink:0; border-left:1px solid var(--border);
+  background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);
+  display:flex; flex-direction:column; position:relative;
+}
+.chat-panel::before {
+  content:''; position:absolute; top:0; left:0; bottom:0; width:1px;
+  background:linear-gradient(180deg,transparent,rgba(99,102,241,0.3),transparent);
+}
+
+/* Agent tabs */
+.agent-tabs {
+  display:flex; border-bottom:1px solid var(--border);
+  overflow-x:auto; flex-shrink:0; scrollbar-width:none;
+}
+.agent-tabs::-webkit-scrollbar { display:none; }
+.agent-tab {
+  display:flex; align-items:center; gap:5px;
+  padding:9px 12px; cursor:pointer; font-size:11px; font-weight:600;
+  color:var(--muted); border-bottom:2px solid transparent;
+  transition:all .2s; white-space:nowrap; flex-shrink:0;
+}
+.agent-tab:hover { color:var(--text); background:rgba(255,255,255,0.02); }
+.agent-tab.active { color:var(--text); border-bottom-color:var(--accent); background:rgba(99,102,241,0.06); }
+.tab-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+
+.chat-sub-header {
+  padding:9px 14px; border-bottom:1px solid var(--border); flex-shrink:0;
+  background:rgba(8,13,24,0.6); backdrop-filter:blur(8px);
+  display:flex; align-items:center; gap:8px;
+}
+.chat-sub-title { font-size:11.5px; font-weight:700; flex:1; }
+.chat-sub-desc { font-size:10.5px; color:var(--muted); }
+.chat-header-badge {
+  display:flex; align-items:center; gap:5px;
+  background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.2);
+  color:var(--green); font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px;
+}
+.chat-clear-btn {
+  cursor:pointer; color:var(--muted); font-size:11px; font-weight:600;
+  padding:4px 9px; border-radius:6px; border:1px solid var(--border);
+  transition:all .2s; background:transparent;
+}
+.chat-clear-btn:hover { color:var(--red); border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.06); }
+
+.chat-messages { flex:1; overflow-y:auto; padding:14px 14px 8px; display:flex; flex-direction:column; gap:10px; }
+.msg { display:flex; flex-direction:column; gap:4px; max-width:100%; }
+.msg.user { align-items:flex-end; }
+.msg.agent { align-items:flex-start; }
+.msg-bubble {
+  padding:10px 13px; border-radius:13px; font-size:12px;
+  line-height:1.6; max-width:93%;
+}
+.msg.user .msg-bubble {
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:white; border-bottom-right-radius:3px;
+  box-shadow:0 4px 16px rgba(99,102,241,0.3);
+}
+.msg.agent .msg-bubble {
+  background:rgba(14,21,40,0.8); border:1px solid var(--border2);
+  color:var(--text); border-bottom-left-radius:3px;
+  white-space:pre-wrap; backdrop-filter:blur(8px);
+}
+.msg-time { font-size:10px; color:var(--muted); }
+.msg-sender { font-size:10px; font-weight:700; color:var(--muted2); }
+.msg-typing {
+  display:flex; align-items:center; gap:5px; padding:10px 13px;
+  background:rgba(14,21,40,0.8); border:1px solid var(--border2);
+  border-radius:13px; border-bottom-left-radius:3px;
+}
+.typing-dot {
+  width:5px; height:5px; border-radius:50%; background:var(--accent);
+  animation:blink 1.4s infinite; box-shadow:0 0 6px var(--glow-accent);
+}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+
+.chat-suggestions {
+  padding:8px 14px; display:flex; flex-wrap:wrap; gap:6px; flex-shrink:0;
+}
+.chip {
+  background:rgba(99,102,241,0.07); border:1px solid rgba(99,102,241,0.2);
+  color:var(--muted2); font-size:11px; font-weight:500;
+  padding:5px 12px; border-radius:20px; cursor:pointer; transition:all .2s;
+}
+.chip:hover { border-color:var(--accent); color:var(--accent3); background:rgba(99,102,241,0.13); }
+.option-pills { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.option-pill {
+  background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.08));
+  border:1px solid rgba(99,102,241,0.3); color:var(--accent3);
+  font-size:11px; font-weight:700; padding:5px 13px; border-radius:20px;
+  cursor:pointer; transition:all .2s;
+}
+.option-pill:hover { background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.15)); box-shadow:0 0 16px rgba(99,102,241,0.2); }
+.sys-msg {
+  font-size:11px; color:var(--muted); text-align:center; padding:5px 0;
+  display:flex; align-items:center; gap:6px; justify-content:center;
+}
+.sys-msg::before,.sys-msg::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.chat-input-area { padding:12px 14px 14px; border-top:1px solid var(--border); flex-shrink:0; }
+.chat-input-row { display:flex; gap:8px; align-items:flex-end; }
+.chat-input {
+  flex:1; background:rgba(10,15,30,0.8); border:1px solid var(--border2);
+  border-radius:11px; padding:10px 13px; color:var(--text); font-size:12.5px;
+  font-family:inherit; resize:none; outline:none; min-height:40px; max-height:120px;
+  line-height:1.5; transition:border-color .2s;
+}
+.chat-input:focus { border-color:rgba(99,102,241,0.5); box-shadow:0 0 0 3px rgba(99,102,241,0.08); }
+.chat-input::placeholder { color:var(--muted); }
+.send-btn {
+  width:38px; height:38px; border-radius:10px; flex-shrink:0;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  border:none; color:white; cursor:pointer; font-size:15px;
+  display:flex; align-items:center; justify-content:center;
+  transition:all .2s; box-shadow:0 4px 16px rgba(99,102,241,0.3);
+}
+.send-btn:hover { transform:scale(1.05); box-shadow:0 6px 24px rgba(99,102,241,0.45); }
+.send-btn:active { transform:scale(0.97); }
+.send-btn:disabled { opacity:.35; cursor:default; transform:none; box-shadow:none; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ SIDEBAR ═══════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">⚡</div>
+    <div>
+      <div class="logo-text">Agentic OS</div>
+      <div class="logo-sub">Faceless Channel</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Workspace</div>
+    <div class="nav-item active" onclick="goTo('top')">⚡ Command Center <span class="nav-dot"></span></div>
+    <div class="nav-item" onclick="goTo('activity')">📡 Activity <span class="nav-badge" id="sb-actions">0</span></div>
+    <div class="nav-item" onclick="goTo('research')">🔍 Research <span class="nav-badge" id="sb-research-count">0</span></div>
+    <div class="nav-item" onclick="goTo('agents')">🤖 Agents</div>
+    <div class="nav-item" onclick="goTo('tasks')">📋 Tasks <span class="nav-badge" id="sb-tasks-count">0</span></div>
+    <div class="nav-item" onclick="goTo('memory')">🧠 Memory <span class="nav-badge" id="sb-memory-count">0</span></div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Agents — click to chat</div>
+    <div class="agent-sidebar-item" onclick="switchTab('ceo')">
+      <div class="agent-dot" style="background:var(--accent);box-shadow:0 0 6px var(--glow-accent)"></div> CEO
+    </div>
+    <div class="agent-sidebar-item" onclick="switchTab('researcher');goTo('research')">
+      <div class="agent-dot" style="background:var(--amber);box-shadow:0 0 6px var(--glow-amber)"></div> Researcher
+    </div>
+    <div class="agent-sidebar-item" onclick="switchTab('cmo')">
+      <div class="agent-dot" style="background:var(--pink);box-shadow:0 0 6px rgba(236,72,153,0.4)"></div> CMO
+    </div>
+    <div class="agent-sidebar-item" onclick="switchTab('sales')">
+      <div class="agent-dot" style="background:var(--green);box-shadow:0 0 6px var(--glow-green)"></div> Sales Rep
+    </div>
+    <div class="agent-sidebar-item" onclick="switchTab('analyst')">
+      <div class="agent-dot" style="background:var(--blue);box-shadow:0 0 6px rgba(59,130,246,0.4)"></div> Data Analyst
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar">H</div>
+      <div>
+        <div class="user-name">Hidde</div>
+        <div class="user-role">Owner · Creator</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════ MAIN ═══════════════════ -->
+<main class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="breadcrumb">Workspace <span style="opacity:.4">/</span> <span id="breadcrumb-page">Command Center</span></div>
+      <div class="status-pill"><div class="pulse"></div> All agents live</div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-time" id="clock">--:-- --</div>
+      <div class="icon-btn">⚙️</div>
+    </div>
+  </div>
+
+  <div class="body-layout">
+    <div class="content" id="main-content">
+
+      <!-- STATS -->
+      <div class="stats-row" id="section-top">
+        <div class="stat-card" onclick="goTo('activity')">
+          <div class="stat-icon" style="background:rgba(99,102,241,.15)">🤖</div>
+          <div><div class="stat-val" style="color:var(--accent)" id="stat-agents">5</div><div class="stat-label">Active Agents</div></div>
+          <div class="stat-trend trend-up">Live</div>
+        </div>
+        <div class="stat-card" onclick="goTo('research')">
+          <div class="stat-icon" style="background:rgba(245,158,11,.12)">🔍</div>
+          <div><div class="stat-val" style="color:var(--amber)" id="stat-channels">0</div><div class="stat-label">Channels found</div></div>
+          <div class="stat-trend trend-neutral">research</div>
+        </div>
+        <div class="stat-card" onclick="goTo('tasks')">
+          <div class="stat-icon" style="background:rgba(236,72,153,.12)">🎬</div>
+          <div><div class="stat-val" style="color:var(--pink)" id="stat-scripts">0</div><div class="stat-label">Scripts in queue</div></div>
+          <div class="stat-trend trend-up">drafts</div>
+        </div>
+        <div class="stat-card" onclick="goTo('memory')">
+          <div class="stat-icon" style="background:rgba(59,130,246,.12)">🧠</div>
+          <div><div class="stat-val" style="color:var(--blue)" id="stat-memory">0</div><div class="stat-label">Memory entries</div></div>
+          <div class="stat-trend trend-neutral">shared</div>
+        </div>
+      </div>
+
+      <!-- ACTIVITY BOARD -->
+      <div class="activity-board" id="section-activity">
+        <div class="activity-header">
+          <div>📡</div>
+          <div class="activity-title">Agent Activity — what's happening &amp; what you need to do</div>
+          <div class="activity-updated" id="activity-updated">Updating…</div>
+          <div class="section-action" onclick="loadActivity()">↻ Refresh</div>
+        </div>
+
+        <div class="activity-row">
+          <div class="activity-row-icon">🧠</div>
+          <div class="activity-row-name">CEO</div>
+          <div class="activity-status ast-active">Active</div>
+          <div class="activity-row-desc">Reads all agent memory · sparring partner · routes tasks to other agents. Chat directly in the panel →</div>
+          <div class="activity-row-result">Runs daily<span>06:00 AM</span></div>
+        </div>
+
+        <div class="activity-row">
+          <div class="activity-row-icon">🔍</div>
+          <div class="activity-row-name">Researcher</div>
+          <div class="activity-status ast-idle" id="act-status-researcher">Idle</div>
+          <div class="activity-row-desc" id="act-last-researcher">Press <strong>Start Deep Sweep</strong> in the panel below to begin. Will scan 50–100 faceless channels (LEMMiNO, Nexpo, etc.) and score each one.</div>
+          <div class="activity-row-result">~5–15 min<span id="act-result-researcher">50–100 channels</span></div>
+        </div>
+
+        <div class="activity-row">
+          <div class="activity-row-icon">🎨</div>
+          <div class="activity-row-name">CMO</div>
+          <div class="activity-status ast-idle" id="act-status-cmo">Waiting</div>
+          <div class="activity-row-desc" id="act-last-cmo">Waiting for you to <strong>pick a niche</strong> from the Researcher's options. After that: runs automatically and writes 3 scripts per session.</div>
+          <div class="activity-row-result">~2 min<span>3 scripts/run</span></div>
+        </div>
+
+        <div class="activity-row">
+          <div class="activity-row-icon">📊</div>
+          <div class="activity-row-name">Data Analyst</div>
+          <div class="activity-status ast-idle" id="act-status-analyst">Idle</div>
+          <div class="activity-row-desc" id="act-last-analyst">Runs weekly once you have live content. Produces a <strong>decisions report</strong>: what to make more of, where the funnel leaks, and 3 specific actions for the week.</div>
+          <div class="activity-row-result">Weekly<span>decisions report</span></div>
+        </div>
+
+        <div class="activity-action-needed">
+          <div class="action-label">⚠ Do now</div>
+          <div class="action-items" id="action-items">
+            <div class="no-actions">Checking…</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESEARCH PANEL -->
+      <div class="research-panel" id="section-research">
+        <div class="research-panel-header">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(245,158,11,.15);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:0 0 16px rgba(245,158,11,.2)">🔍</div>
+          <div style="flex:1">
+            <div class="research-panel-title">Deep Channel Discovery</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px" id="research-status-text">Ready — discovers channels like LEMMiNO, Nexpo, FascinatingHorror…</div>
+          </div>
+          <div style="text-align:right;margin-right:14px">
+            <div class="research-count" id="research-channels-count">0</div>
+            <div class="research-count-label">channels found</div>
+          </div>
+          <button class="research-btn research-btn-start" id="research-start-btn" onclick="startResearch()">▶ Start Deep Sweep</button>
+          <button class="research-btn research-btn-stop" id="research-stop-btn" onclick="stopResearch()" style="display:none;margin-left:8px">■ Stop</button>
+        </div>
+        <div class="research-log" id="research-log">
+          <div class="log-line log-info"><span class="log-time">--:--</span>Researcher idle. Press "Start Deep Sweep" to begin.</div>
+        </div>
+        <div class="research-channels-grid" id="research-channels-grid"><div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;height:100%">Channels appear here as they're analysed…</div></div>
+      </div>
+
+      <!-- NICHE OPTIONS -->
+      <div id="niche-section" style="display:none">
+        <div class="section-header">
+          <div><div class="section-title">✨ Niche Options</div><div class="section-sub">Pick one to proceed — or spar with the CEO →</div></div>
+          <div class="section-action" onclick="document.getElementById('niche-section').style.display='none'">Hide</div>
+        </div>
+        <div class="options-grid" id="options-grid"></div>
+      </div>
+
+      <!-- AGENTS -->
+      <div id="section-agents">
+        <div class="section-header">
+          <div><div class="section-title">Agents</div><div class="section-sub">All running autonomously · click agent in sidebar to chat directly</div></div>
+        </div>
+        <div class="agents-grid">
+          <div class="agent-card" id="agent-ceo">
+            <div class="agent-card-top">
+              <div class="agent-avatar" style="background:rgba(99,102,241,.18);box-shadow:0 0 16px rgba(99,102,241,.2)">🧠</div>
+              <div class="status-badge status-active">Active</div>
+            </div>
+            <div class="agent-name">CEO</div>
+            <div class="agent-role">Orchestrator & Sparring Partner</div>
+            <div class="agent-metrics">
+              <div class="agent-metric"><div class="agent-metric-val" style="color:var(--accent)" id="m-tasks">0</div><div class="agent-metric-label">Tasks</div></div>
+              <div class="agent-metric"><div class="agent-metric-val" style="color:var(--accent)" id="m-memory">0</div><div class="agent-metric-label">Memory</div></div>
+            </div>
+            <button class="run-btn" onclick="switchTab('ceo')">💬 Chat with CEO</button>
+          </div>
+          <div class="agent-card" id="agent-researcher">
+            <div class="agent-card-top">
+              <div class="agent-avatar" style="background:rgba(245,158,11,.15);box-shadow:0 0 16px rgba(245,158,11,.15)">🔍</div>
+              <div class="status-badge status-idle" id="badge-researcher">Idle</div>
+            </div>
+            <div class="agent-name">Researcher</div>
+            <div class="agent-role">Faceless channel discovery</div>
+            <div class="agent-metrics">
+              <div class="agent-metric"><div class="agent-metric-val" style="color:var(--amber)" id="m-channels">0</div><div class="agent-metric-label">Channels</div></div>
+              <div class="agent-metric"><div class="agent-metric-val" style="color:var(--amber)" id="m-options">0</div><div class="agent-metric-label">Options</div></div>
+            </div>
+            <button class="run-btn" onclick="startResearch();goTo('research')">▶ Deep sweep ↑</button>
+          </div>
+          <div class="agent-card" id="agent-cmo">
+            <div class="agent-card-top">
+              <div class="agent-avatar" style="background:rgba(236,72,153,.15);box-shadow:0 0 16px rgba(236,72,153,.15)">🎨</div>
+              <div class="status-badge status-idle" id="badge-cmo">Idle</div>
+            </div>
+            <div class="agent-name">CMO</div>
+            <div class="agent-role">Script & content writer</div>
+            <div class="agent-metrics">
+              <div class="agent-metric"><div class="agent-metric-val" style="color:var(--pink)" id="m-scripts">0</div><div class="agent-metric-label">Scripts</div></div>
+              <div class="agent-metric"><div class="agent-metric-val" style="color:var(--pink)">0</div><div class="agent-metric-label">Approved</div></div>
+            </div>
+            <button class="run-btn" onclick="triggerAgent('cmo')">▶ Write scripts</button>
+          </div>
+          <div class="agent-card" id="agent-analyst">
+            <div class="agent-card-top">
+              <div class="agent-avatar" style="background:rgba(59,130,246,.15);box-shadow:0 0 16px rgba(59,130,246,.15)">📊</div>
+              <div class="status-badge status-idle" id="badge-analyst">Idle</div>
+            </div>
+            <div class="agent-name">Data Analyst</div>
+            <div class="agent-role">Performance & decisions</div>
+            <div class="agent-metrics">
+              <div class="agent-metric"><div class="agent-metric-val" style="color:var(--blue)">—</div><div class="agent-metric-label">Views</div></div>
+              <div class="agent-metric"><div class="agent-metric-val" style="color:var(--blue)">—</div><div class="agent-metric-label">Revenue</div></div>
+            </div>
+            <button class="run-btn" onclick="triggerAgent('analyst')">▶ Weekly report</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TASKS + MEMORY -->
+      <div class="bottom-row">
+        <div class="panel" id="section-tasks">
+          <div class="section-header" style="margin-bottom:8px">
+            <div class="section-title">📋 Tasks</div>
+            <div class="section-action" onclick="loadTasks()">↻ Refresh</div>
+          </div>
+          <div id="tasks-list"><div class="empty-state"><div class="empty-state-icon">📋</div><div>No pending tasks</div></div></div>
+        </div>
+        <div class="panel" id="section-memory">
+          <div class="section-header" style="margin-bottom:8px">
+            <div class="section-title">🧠 Shared Memory</div>
+            <div class="section-action" onclick="loadMemory()">↻ Refresh</div>
+          </div>
+          <div id="memory-list"><div class="empty-state"><div class="empty-state-icon">🧠</div><div>Memory fills as agents run</div></div></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- ═══════════════════ CHAT PANEL ═══════════════════ -->
+    <div class="chat-panel">
+
+      <!-- Agent tab switcher -->
+      <div class="agent-tabs" id="agent-tabs">
+        <div class="agent-tab active" data-agent="ceo" onclick="switchTab('ceo')">
+          <div class="tab-dot" style="background:var(--accent)"></div> CEO
+        </div>
+        <div class="agent-tab" data-agent="researcher" onclick="switchTab('researcher')">
+          <div class="tab-dot" style="background:var(--amber)"></div> Researcher
+        </div>
+        <div class="agent-tab" data-agent="cmo" onclick="switchTab('cmo')">
+          <div class="tab-dot" style="background:var(--pink)"></div> CMO
+        </div>
+        <div class="agent-tab" data-agent="analyst" onclick="switchTab('analyst')">
+          <div class="tab-dot" style="background:var(--blue)"></div> Analyst
+        </div>
+        <div class="agent-tab" data-agent="sales" onclick="switchTab('sales')">
+          <div class="tab-dot" style="background:var(--green)"></div> Sales
+        </div>
+      </div>
+
+      <!-- Per-agent header -->
+      <div class="chat-sub-header">
+        <div id="tab-icon" style="font-size:18px">🧠</div>
+        <div style="flex:1">
+          <div class="chat-sub-title" id="tab-title">CEO Agent</div>
+          <div class="chat-sub-desc" id="tab-desc">Reads all memory · fully stateful · orchestrates other agents</div>
+        </div>
+        <div class="chat-header-badge"><div class="pulse"></div> Ready</div>
+        <button class="chat-clear-btn" onclick="clearChat()">✕</button>
+      </div>
+
+      <div class="chat-messages" id="chat-messages"></div>
+
+      <div class="chat-suggestions" id="chips"></div>
+
+      <div class="chat-input-area">
+        <div class="chat-input-row">
+          <textarea class="chat-input" id="chat-input" rows="1"
+            placeholder="Ask anything…"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = 'http://localhost:8000';
+
+// ── Agent config ─────────────────────────────────────────────────
+const AGENTS = {
+  ceo: {
+    icon: '🧠', name: 'CEO Agent',
+    desc: 'Reads all memory · fully stateful · orchestrates other agents',
+    color: 'var(--accent)',
+    chips: ['What niches look best?', 'Start the research sweep', 'What did Researcher find?', 'Give me 3 channel concepts'],
+    welcome: 'Hey Hidde 👋\n\nI\'m your AI chief of staff. I read everything your agents discover.\n\nHit **Start Deep Sweep** above to find channels — I\'ll analyse and give you concrete options.\n\nOr ask me anything.'
+  },
+  researcher: {
+    icon: '🔍', name: 'Researcher',
+    desc: 'Channel discovery specialist · knows every channel analysed',
+    color: 'var(--amber)',
+    chips: ['Which channel scored highest?', 'Compare the top niches', 'What formula works best?', 'Which niche has least competition?'],
+    welcome: 'Hey! I\'m the Researcher.\n\nAsk me anything about the channels I\'ve analysed — scores, niches, formulas, subscriber counts.\n\nIf I haven\'t run yet, hit "Start Deep Sweep" first.'
+  },
+  cmo: {
+    icon: '🎨', name: 'CMO',
+    desc: 'Content & script writer · generates hooks and full scripts',
+    color: 'var(--pink)',
+    chips: ['Write 5 hooks for [topic]', 'What content format works best?', 'Write a script about [topic]', 'How do I make videos go viral?'],
+    welcome: 'Hey, I\'m the CMO.\n\nI write scripts, hooks, and content strategy.\n\nTell me a topic and I\'ll write hooks or a full script. Once a niche is chosen I\'ll run automatically and queue scripts for approval.'
+  },
+  analyst: {
+    icon: '📊', name: 'Data Analyst',
+    desc: 'Performance analyst · tracks what works and what to prioritize',
+    color: 'var(--blue)',
+    chips: ['What should I focus on this week?', 'How is the funnel performing?', 'What content is converting?', 'Rank my priorities'],
+    welcome: 'Hey, I\'m the Data Analyst.\n\nI track performance and tell you what to focus on.\n\nRight now there\'s not much data yet — that comes once content is live. Ask me anything about priorities or strategy.'
+  },
+  sales: {
+    icon: '💼', name: 'Sales Rep',
+    desc: 'Lead scoring · outreach strategy · call prep',
+    color: 'var(--green)',
+    chips: ['Score my current leads', 'Write an outreach message', 'What objections should I prep for?', 'Who should I call first?'],
+    welcome: 'Hey! I\'m the Sales Rep.\n\nI score leads, prep outreach, and help you convert.\n\nAsk me about current leads, outreach strategy, or prep for a specific conversation.'
+  }
+};
+
+// ── State ────────────────────────────────────────────────────────
+let activeAgent = 'ceo';
+let isTyping = false;
+// Per-agent in-memory chat history (non-CEO agents are tracked client-side)
+const agentHistories = { researcher:[], cmo:[], analyst:[], sales:[] };
+
+// ── Clock ────────────────────────────────────────────────────────
+function updateClock() {
+  const d = new Date();
+  const h = (d.getHours() % 12 || 12).toString().padStart(2,'0');
+  const m = d.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m} ${d.getHours()>=12?'PM':'AM'}`;
+}
+updateClock(); setInterval(updateClock, 1000);
+
+// ── Nav scroll — goTo (NOT scrollTo — that's a browser built-in!) ─
+const sectionIds = {
+  top: 'section-top',
+  activity: 'section-activity',
+  research: 'section-research',
+  agents: 'section-agents',
+  tasks: 'section-tasks',
+  memory: 'section-memory'
+};
+const navLabels = {
+  top:'Command Center', activity:'Activity', research:'Research',
+  agents:'Agents', tasks:'Tasks', memory:'Memory'
+};
+
+function goTo(id) {
+  const el = document.getElementById(sectionIds[id] || id);
+  if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+  // Update active nav
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navMap = { top:0, activity:1, research:2, agents:3, tasks:4, memory:5 };
+  const navItems = document.querySelectorAll('.nav-item');
+  if (navMap[id] !== undefined && navItems[navMap[id]]) navItems[navMap[id]].classList.add('active');
+  document.getElementById('breadcrumb-page').textContent = navLabels[id] || id;
+}
+
+function highlightAgent(name) {
+  const card = document.getElementById(`agent-${name}`);
+  if (!card) return;
+  card.style.transition = 'box-shadow .3s, border-color .3s';
+  card.style.boxShadow = '0 0 30px rgba(99,102,241,0.3)';
+  card.style.borderColor = 'rgba(99,102,241,0.5)';
+  setTimeout(() => { card.style.boxShadow=''; card.style.borderColor=''; }, 2000);
+}
+
+// ── Agent tab switcher ───────────────────────────────────────────
+function switchTab(agent) {
+  if (!AGENTS[agent]) return;
+  activeAgent = agent;
+  const cfg = AGENTS[agent];
+  // Update tabs
+  document.querySelectorAll('.agent-tab').forEach(t => t.classList.toggle('active', t.dataset.agent===agent));
+  // Update header
+  document.getElementById('tab-icon').textContent = cfg.icon;
+  document.getElementById('tab-title').textContent = cfg.name;
+  document.getElementById('tab-desc').textContent = cfg.desc;
+  document.getElementById('chat-input').placeholder = `Ask ${cfg.name}…`;
+  // Load messages for this agent
+  renderChatForAgent(agent);
+}
+
+function renderChatForAgent(agent) {
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '';
+  const chips = document.getElementById('chips');
+  chips.innerHTML = '';
+  const cfg = AGENTS[agent];
+  if (agent === 'ceo') {
+    // CEO: load from DB
+    loadChatHistory();
+  } else {
+    // Other agents: from in-memory history
+    const history = agentHistories[agent] || [];
+    if (!history.length) {
+      appendMsg('agent', cfg.welcome);
+    } else {
+      history.forEach(m => appendMsg(m.role==='user'?'user':'agent', m.content));
+    }
+  }
+  // Chips
+  cfg.chips.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'chip';
+    d.textContent = c;
+    d.onclick = () => sendMessage(c);
+    chips.appendChild(d);
+  });
+  // Scroll to bottom
+  setTimeout(() => { msgs.scrollTop = msgs.scrollHeight; }, 50);
+}
+
+// ── Stats ────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const r = await fetch(`${API}/api/stats`);
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('stat-agents').textContent = d.agents || 5;
+    document.getElementById('stat-memory').textContent = d.memory_entries || 0;
+    document.getElementById('stat-scripts').textContent = d.scripts_in_queue || 0;
+    document.getElementById('m-tasks').textContent = d.tasks_total || 0;
+    document.getElementById('m-memory').textContent = d.memory_entries || 0;
+    document.getElementById('m-scripts').textContent = d.scripts_in_queue || 0;
+    document.getElementById('sb-memory-count').textContent = d.memory_entries || 0;
+  } catch(e) {}
+}
+
+// ── Activity board ────────────────────────────────────────────────
+async function loadActivity() {
+  try {
+    const [runsR, tasksR, resR] = await Promise.all([
+      fetch(`${API}/api/runs`),
+      fetch(`${API}/api/tasks?status=pending`),
+      fetch(`${API}/api/research/status`)
+    ]);
+    const { runs } = await runsR.json();
+    const { tasks } = await tasksR.json();
+    const { active, latest } = await resR.json();
+
+    // Last run per agent
+    const lastRun = {};
+    for (const run of (runs||[])) {
+      if (!lastRun[run.agent]) lastRun[run.agent] = run;
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return '';
+      const sec = Math.floor((Date.now() - new Date(ts+'Z')) / 1000);
+      if (sec < 60) return `${sec}s ago`;
+      if (sec < 3600) return `${Math.floor(sec/60)}m ago`;
+      if (sec < 86400) return `${Math.floor(sec/3600)}h ago`;
+      return `${Math.floor(sec/86400)}d ago`;
+    }
+
+    // Update researcher row
+    const resSession = active || latest;
+    if (resSession) {
+      const count = resSession.channels_found || 0;
+      const isRunning = resSession.status === 'running';
+      const statusEl = document.getElementById('act-status-researcher');
+      statusEl.textContent = isRunning ? 'Running…' : (resSession.status==='done' ? 'Done ✓' : 'Stopped');
+      statusEl.className = 'activity-status ' + (isRunning ? 'ast-running' : 'ast-done');
+      const resultEl = document.getElementById('act-result-researcher');
+      if (resultEl) resultEl.textContent = count + ' found so far';
+      document.getElementById('act-last-researcher').innerHTML = isRunning
+        ? `Actively scanning — <strong>${count} channels</strong> analysed so far. Watch the Research panel below for live progress.`
+        : count >= 3
+          ? `Last sweep finished: <strong>${count} channels</strong> scored. <strong>Niche options</strong> are ready — scroll up or ask the CEO.`
+          : `Press <strong>Start Deep Sweep</strong> below to scan 50–100 faceless channels and score them.`;
+    }
+
+    // Update CMO row
+    if (lastRun.cmo) {
+      const r = lastRun.cmo;
+      const isDone = r.status === 'success';
+      document.getElementById('act-status-cmo').textContent = isDone ? 'Done ✓' : 'Idle';
+      document.getElementById('act-status-cmo').className = 'activity-status ' + (isDone ? 'ast-done' : 'ast-idle');
+      document.getElementById('act-last-cmo').innerHTML = isDone
+        ? `Last ran <strong>${timeAgo(r.ended_at)}</strong> — ${escHtml((r.summary||'').slice(0,70))}. Review scripts in <strong>Tasks</strong>.`
+        : 'Waiting for niche pick. Once chosen, trigger CMO via the agent card or ask the CEO.';
+    }
+
+    // Update Analyst row
+    if (lastRun.analyst) {
+      const r = lastRun.analyst;
+      document.getElementById('act-status-analyst').textContent = 'Done ✓';
+      document.getElementById('act-status-analyst').className = 'activity-status ast-done';
+      document.getElementById('act-last-analyst').innerHTML = `Last report <strong>${timeAgo(r.ended_at)}</strong> — ${escHtml((r.summary||'').slice(0,70))}`;
+    }
+
+    // "You need to" actions
+    const actionItems = [];
+    if (!resSession || (resSession.status !== 'running' && (resSession.channels_found||0) < 3)) {
+      actionItems.push({ text:'🔍 Start Deep Sweep', action: () => { goTo('research'); startResearch(); } });
+    }
+    if (resSession && resSession.channels_found >= 3 && !lastRun.cmo) {
+      actionItems.push({ text:'✨ Pick a niche from options', action: () => goTo('niche-section') });
+    }
+    if (tasks?.length) {
+      const ownerTasks = tasks.filter(t => t.assigned_to === 'owner').slice(0,2);
+      ownerTasks.forEach(t => actionItems.push({ text:`📋 ${t.title.slice(0,45)}`, action:()=>goTo('tasks') }));
+    }
+    const pending = (tasks||[]).filter(t=>t.assigned_to==='owner').length;
+    document.getElementById('sb-actions').textContent = actionItems.length;
+    document.getElementById('sb-tasks-count').textContent = (tasks||[]).length;
+
+    const actionEl = document.getElementById('action-items');
+    if (!actionItems.length) {
+      actionEl.innerHTML = '<div class="no-actions">✅ All clear — system running autonomously</div>';
+    } else {
+      actionEl.innerHTML = '';
+      actionItems.forEach(item => {
+        const d = document.createElement('div');
+        d.className = 'action-item';
+        d.textContent = item.text;
+        d.onclick = item.action;
+        actionEl.appendChild(d);
+      });
+    }
+
+    document.getElementById('activity-updated').textContent = `Updated ${new Date().toLocaleTimeString('nl',{hour:'2-digit',minute:'2-digit'})}`;
+  } catch(e) {}
+}
+
+// ── Memory ────────────────────────────────────────────────────────
+async function loadMemory() {
+  try {
+    const r = await fetch(`${API}/api/memory?limit=8`);
+    if (!r.ok) return;
+    const { entries } = await r.json();
+    const el = document.getElementById('memory-list');
+    if (!entries?.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🧠</div><div>Memory fills as agents run</div></div>';
+      return;
+    }
+    const colors = { ceo:'var(--accent)', researcher:'var(--amber)', cmo:'var(--pink)', sales:'var(--green)', analyst:'var(--blue)' };
+    el.innerHTML = entries.map(e => `
+      <div class="memory-item">
+        <div class="memory-dot" style="background:${colors[e.agent]||'var(--muted)'};box-shadow:0 0 5px ${colors[e.agent]||'var(--muted)'}40"></div>
+        <div style="flex:1">
+          <div class="memory-text"><span class="memory-agent" style="color:${colors[e.agent]||'var(--muted)'}">${e.agent?.toUpperCase()} →</span> ${escHtml(e.summary)}</div>
+        </div>
+        <div class="memory-time">${(e.created_at||'').slice(11,16)}</div>
+      </div>`).join('');
+
+    // Detect niche options in memory
+    for (const e of entries) {
+      if (e.detail) {
+        try {
+          const detail = typeof e.detail==='string' ? JSON.parse(e.detail) : e.detail;
+          if (detail.options?.length) showNicheOptions(detail.options);
+        } catch(err) {}
+      }
+    }
+  } catch(e) {}
+}
+
+// ── Tasks ─────────────────────────────────────────────────────────
+async function loadTasks() {
+  try {
+    const r = await fetch(`${API}/api/tasks?status=pending`);
+    if (!r.ok) return;
+    const { tasks } = await r.json();
+    const el = document.getElementById('tasks-list');
+    if (!tasks?.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-state-icon">✅</div><div>No pending tasks</div></div>';
+      return;
+    }
+    const tagClass = { researcher:'tag-researcher', cmo:'tag-cmo', sales:'tag-sales', owner:'tag-owner', analyst:'tag-analyst' };
+    el.innerHTML = tasks.slice(0,6).map(t => `
+      <div class="task-item">
+        <div class="task-check" onclick="completeTask('${t.id}',this)"></div>
+        <div style="flex:1">
+          <div class="task-title">${escHtml(t.title)}</div>
+          <div class="task-meta"><span class="task-tag ${tagClass[t.assigned_to]||'tag-owner'}">${t.assigned_to}</span><span>${t.priority||'normal'}</span></div>
+        </div>
+      </div>`).join('');
+    document.getElementById('sb-tasks-count').textContent = tasks.length;
+  } catch(e) {}
+}
+
+async function completeTask(id, el) {
+  try {
+    await fetch(`${API}/api/tasks/${id}/complete`, {method:'POST'});
+    el.classList.add('done'); el.textContent = '✓';
+    el.closest('.task-item').querySelector('.task-title').classList.add('done');
+    setTimeout(loadActivity, 1000);
+  } catch(e) {}
+}
+
+// ── Niche options ─────────────────────────────────────────────────
+function showNicheOptions(options) {
+  const sec = document.getElementById('niche-section');
+  const grid = document.getElementById('options-grid');
+  sec.style.display = 'block';
+  const effortColor = { low:'tag-low', medium:'tag-medium', high:'tag-high' };
+  grid.innerHTML = options.slice(0,4).map((o,i) => `
+    <div class="option-card" onclick="pickOption(${i+1},'${escAttr(o.name||'')}')">
+      <div class="option-num">Option ${i+1}</div>
+      <div class="option-name">${escHtml(o.name||'')}</div>
+      <div class="option-formula">${escHtml(o.formula||o.why_choose_this||'')}</div>
+      <div class="option-tags">
+        <span class="option-tag ${effortColor[o.effort]||'tag-medium'}">Effort: ${o.effort||'?'}</span>
+        <span class="option-tag ${effortColor[o.competition]||'tag-medium'}">Competition: ${o.competition||'?'}</span>
+        ${o.time_to_100k?`<span class="option-tag tag-low">~${o.time_to_100k} to 100k</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function pickOption(num, name) {
+  document.querySelectorAll('.option-card').forEach((c,i) => c.classList.toggle('selected',i+1===num));
+  switchTab('ceo');
+  sendMessage(`Ik kies Option ${num}: ${name}. Wat is het plan?`);
+}
+
+// ── Trigger agent ─────────────────────────────────────────────────
+async function triggerAgent(agent) {
+  const badge = document.getElementById(`badge-${agent}`);
+  if (badge) { badge.textContent='Running…'; badge.className='status-badge status-working'; }
+  addSystemMsg(`▶ Triggering ${agent}…`);
+  try {
+    await fetch(`${API}/api/run/${agent}`, {method:'POST'});
+    addSystemMsg(`✅ ${agent} triggered — results in ~15–60s`);
+    setTimeout(() => { loadStats(); loadMemory(); loadTasks(); loadActivity(); }, 12000);
+    setTimeout(() => { loadStats(); loadMemory(); loadTasks(); loadActivity(); }, 35000);
+  } catch(e) {
+    addSystemMsg('⚠️ API not running. Start: python -m uvicorn api:app --port 8000');
+  }
+  if (badge) setTimeout(() => { badge.textContent='Idle'; badge.className='status-badge status-idle'; }, 8000);
+}
+
+function addSystemMsg(text) {
+  const msgs = document.getElementById('chat-messages');
+  const el = document.createElement('div');
+  el.className = 'sys-msg'; el.textContent = text;
+  msgs.appendChild(el); msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── Research ──────────────────────────────────────────────────────
+let researchPollTimer = null;
+let researchLogOffset = 0;
+let researchSessionId = null;
+let researchIsRunning = false;
+
+async function startResearch() {
+  try {
+    const r = await fetch(`${API}/api/research/start`, {method:'POST'});
+    const d = await r.json();
+    if (!d.ok) {
+      if (d.error?.includes('already running')) {
+        researchSessionId = d.session_id;
+        startResearchPolling();
+      } else { alert(d.error||'Could not start'); }
+      return;
+    }
+    researchSessionId = d.session_id;
+    researchLogOffset = 0; researchIsRunning = true;
+    setResearchRunning(true); startResearchPolling();
+    addSystemMsg('🔍 Deep discovery started!');
+  } catch(e) {
+    addSystemMsg('⚠️ API not running. Start: python -m uvicorn api:app --port 8000');
+  }
+}
+
+async function stopResearch() {
+  try {
+    await fetch(`${API}/api/research/stop`, {method:'POST'});
+    researchIsRunning = false; setResearchRunning(false);
+    document.getElementById('research-status-text').textContent = 'Stopped by user';
+    if (researchPollTimer) { clearInterval(researchPollTimer); researchPollTimer=null; }
+    addSystemMsg('🛑 Research stopped');
+  } catch(e) {}
+}
+
+function setResearchRunning(running) {
+  document.getElementById('research-start-btn').style.display = running?'none':'block';
+  document.getElementById('research-stop-btn').style.display = running?'block':'none';
+  const badge = document.getElementById('badge-researcher');
+  if (badge) { badge.textContent=running?'Running…':'Idle'; badge.className='status-badge '+(running?'status-working':'status-idle'); }
+  const actStatus = document.getElementById('act-status-researcher');
+  if (actStatus) { actStatus.textContent=running?'Running…':'Idle'; actStatus.className='activity-status '+(running?'ast-running':'ast-idle'); }
+}
+
+function startResearchPolling() {
+  if (researchPollTimer) clearInterval(researchPollTimer);
+  researchPollTimer = setInterval(pollResearch, 2500);
+  pollResearch();
+}
+
+async function pollResearch() {
+  try {
+    const sr = await fetch(`${API}/api/research/status`);
+    if (!sr.ok) return;
+    const { active, latest } = await sr.json();
+    const session = active || latest;
+    if (session) {
+      researchSessionId = session.id;
+      const count = session.channels_found || 0;
+      document.getElementById('research-channels-count').textContent = count;
+      document.getElementById('stat-channels').textContent = count;
+      document.getElementById('m-channels').textContent = count;
+      document.getElementById('sb-research-count').textContent = count;
+
+      const isActive = session.status === 'running';
+      if (isActive !== researchIsRunning) {
+        researchIsRunning = isActive; setResearchRunning(isActive);
+        if (!isActive) {
+          document.getElementById('research-status-text').textContent = `Complete — ${count} channels found`;
+          if (researchPollTimer) { clearInterval(researchPollTimer); researchPollTimer=null; }
+          loadResearchChannels();
+          setTimeout(() => { loadMemory(); loadTasks(); loadActivity(); }, 2000);
+        }
+      }
+      if (isActive) {
+        document.getElementById('research-status-text').textContent = `🔍 Scanning — ${count} channels analysed so far…`;
+        document.getElementById('act-last-researcher').innerHTML = `Currently scanning — <strong>${count} channels</strong> found so far`;
+      }
+    }
+    if (researchSessionId) {
+      const lr = await fetch(`${API}/api/research/log?session_id=${researchSessionId}&offset=${researchLogOffset}&limit=50`);
+      if (!lr.ok) return;
+      const { log } = await lr.json();
+      if (log?.length) { researchLogOffset += log.length; appendResearchLog(log); loadResearchChannels(); }
+    }
+  } catch(e) {}
+}
+
+function appendResearchLog(entries) {
+  const el = document.getElementById('research-log');
+  if (el.querySelector('.log-line')?.textContent.includes('Researcher idle')) el.innerHTML = '';
+  for (const entry of entries) {
+    const div = document.createElement('div');
+    div.className = `log-line log-${entry.level||'info'}`;
+    const t = (entry.created_at||'').slice(11,16);
+    div.innerHTML = `<span class="log-time">${t}</span>${escHtml(entry.message)}`;
+    el.appendChild(div);
+  }
+  el.scrollTop = el.scrollHeight;
+}
+
+async function loadResearchChannels() {
+  try {
+    if (!researchSessionId) return;
+    const r = await fetch(`${API}/api/research/channels?session_id=${researchSessionId}&min_score=60`);
+    if (!r.ok) return;
+    const { channels } = await r.json();
+    const grid = document.getElementById('research-channels-grid');
+    if (!channels?.length) return;
+    grid.innerHTML = channels.slice(0,12).map(ch => {
+      const score = ch.score||0;
+      const sc = score>=80?'score-high':score>=65?'score-mid':'score-low';
+      const subs = ch.subscribers>=1000000?(ch.subscribers/1000000).toFixed(1)+'M':ch.subscribers>=1000?Math.round(ch.subscribers/1000)+'K':ch.subscribers;
+      return `<div class="channel-card" title="${escAttr(ch.core_formula||'')}">
+        <div class="channel-score ${sc}">${score}/100</div>
+        <div class="channel-name-text">${escHtml(ch.channel_name||ch.handle||'')}</div>
+        <div class="channel-niche-text">${escHtml(ch.niche||'')}</div>
+        <div class="channel-subs">${subs} subs</div>
+      </div>`;
+    }).join('');
+  } catch(e) {}
+}
+
+async function checkExistingResearch() {
+  try {
+    const r = await fetch(`${API}/api/research/status`);
+    if (!r.ok) return;
+    const { active, latest } = await r.json();
+    if (active) {
+      researchSessionId = active.id; researchIsRunning = true; researchLogOffset = 0;
+      setResearchRunning(true);
+      document.getElementById('research-status-text').textContent = `🔍 Running — ${active.channels_found||0} channels found so far…`;
+      document.getElementById('research-channels-count').textContent = active.channels_found||0;
+      startResearchPolling();
+    } else if (latest) {
+      researchSessionId = latest.id;
+      const count = latest.channels_found||0;
+      document.getElementById('research-channels-count').textContent = count;
+      document.getElementById('stat-channels').textContent = count;
+      document.getElementById('sb-research-count').textContent = count;
+      document.getElementById('research-status-text').textContent =
+        latest.status==='done'?`Last sweep complete — ${count} channels found`:`Stopped — ${count} channels found`;
+      researchLogOffset = 0; await pollResearch(); setResearchRunning(false);
+    }
+  } catch(e) {}
+}
+
+// ── Chat ──────────────────────────────────────────────────────────
+function handleKey(e) {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function sendMessage(text) {
+  const input = document.getElementById('chat-input');
+  const msg = (text || input.value).trim();
+  if (!msg || isTyping) return;
+  input.value = ''; input.style.height='auto';
+  document.getElementById('chips').innerHTML = '';
+  appendMsg('user', msg);
+  showTyping();
+  document.getElementById('send-btn').disabled = true;
+  isTyping = true;
+
+  try {
+    let responseText;
+    if (activeAgent === 'ceo') {
+      const r = await fetch(`${API}/api/chat`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ message: msg })
+      });
+      if (!r.ok) {
+        // API is up but returned an error — show status code
+        const text = await r.text().catch(() => '');
+        hideTyping();
+        appendMsg('agent', `⚠️ Server fout (${r.status}). Kijk in de terminal voor de exacte error.\n\nProbeer het opnieuw — de API draait nog wel.`);
+        isTyping = false; document.getElementById('send-btn').disabled = false;
+        return;
+      }
+      const d = await r.json();
+      responseText = d.response || 'Geen response ontvangen.';
+    } else {
+      const history = agentHistories[activeAgent] || [];
+      const r = await fetch(`${API}/api/chat/agent/${activeAgent}`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ message: msg, history })
+      });
+      const d = await r.json();
+      responseText = d.response || 'Geen response ontvangen.';
+      history.push({ role:'user', content: msg });
+      history.push({ role:'assistant', content: responseText });
+      agentHistories[activeAgent] = history.slice(-40);
+    }
+    hideTyping();
+    appendMsg('agent', responseText);
+    setTimeout(() => { loadStats(); loadMemory(); loadTasks(); loadActivity(); }, 1500);
+  } catch(e) {
+    hideTyping();
+    appendMsg('agent', `⚠️ API niet bereikbaar — is de server gestopt?\n\nTerminal:\n  cd agentic_os\n  python -m uvicorn api:app --port 8000\n\nDaarna: refresh de pagina.`);
+  }
+  isTyping = false;
+  document.getElementById('send-btn').disabled = false;
+}
+
+function appendMsg(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const time = new Date().toLocaleTimeString('nl',{hour:'2-digit',minute:'2-digit'});
+  const d = document.createElement('div');
+  d.className = `msg ${role}`;
+  const agentName = AGENTS[activeAgent]?.name || 'Agent';
+  d.innerHTML = role==='user'
+    ? `<div class="msg-bubble">${escHtml(text)}</div><div class="msg-time">${time}</div>`
+    : `<div class="msg-sender">${agentName}</div><div class="msg-bubble">${formatMsg(text)}</div><div class="msg-time">${time}</div>`;
+  if (role==='agent') {
+    const matches = text.match(/Option\s+(\d+)[:\s—-]/gi);
+    if (matches?.length >= 2) {
+      const pills = document.createElement('div');
+      pills.className = 'option-pills';
+      const nums = [...new Set(matches.map(m=>m.match(/\d+/)[0]))];
+      nums.forEach(n => {
+        const p = document.createElement('div'); p.className='option-pill';
+        p.textContent = `Pick Option ${n}`; p.onclick = () => sendMessage(`I pick Option ${n}`);
+        pills.appendChild(p);
+      });
+      d.appendChild(pills);
+    }
+  }
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+
+function formatMsg(text) {
+  return escHtml(text)
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/^#{1,3}\s(.+)$/gm,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+}
+
+let typingEl = null;
+function showTyping() {
+  const msgs = document.getElementById('chat-messages');
+  typingEl = document.createElement('div');
+  typingEl.className = 'msg agent';
+  const agentName = AGENTS[activeAgent]?.name || 'Agent';
+  typingEl.innerHTML = `<div class="msg-sender">${agentName}</div>
+    <div class="msg-typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(typingEl); msgs.scrollTop = msgs.scrollHeight;
+}
+function hideTyping() { if (typingEl) { typingEl.remove(); typingEl=null; } }
+
+async function loadChatHistory() {
+  try {
+    const r = await fetch(`${API}/api/chat/history`);
+    if (!r.ok) return;
+    const { history } = await r.json();
+    const msgs = document.getElementById('chat-messages');
+    msgs.innerHTML = '';
+    if (!history?.length) {
+      appendMsg('agent', AGENTS.ceo.welcome);
+      return;
+    }
+    history.forEach(m => appendMsg(m.role==='user'?'user':'agent', m.content));
+  } catch(e) {
+    appendMsg('agent', AGENTS.ceo.welcome);
+  }
+}
+
+async function clearChat() {
+  if (activeAgent === 'ceo') {
+    try {
+      await fetch(`${API}/api/chat/history`, {method:'DELETE'});
+    } catch(e) {}
+  } else {
+    agentHistories[activeAgent] = [];
+  }
+  document.getElementById('chat-messages').innerHTML = '';
+  appendMsg('agent', AGENTS[activeAgent].welcome);
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return String(s).replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+
+// ── Init ──────────────────────────────────────────────────────────
+switchTab('ceo');
+loadStats(); loadMemory(); loadTasks(); loadActivity(); checkExistingResearch();
+setInterval(() => { loadStats(); loadMemory(); loadTasks(); loadActivity(); }, 30000);
+</script>
+</body>
+</html>
